@@ -14,6 +14,8 @@ defmodule Acx.Persist.EctoAdapter do
     use Ecto.Schema
     @columns [:ptype, :v0, :v1, :v2, :v3, :v4, :v5, :v6]
 
+    @primary_key {:id, :binary_id, autogenerate: true}
+    @foreign_key_type :binary_id
     schema "casbin_rule" do
       field(:ptype, :string)
       field(:v0, :string)
@@ -23,6 +25,8 @@ defmodule Acx.Persist.EctoAdapter do
       field(:v4, :string)
       field(:v5, :string)
       field(:v6, :string)
+
+      timestamps(type: :utc_datetime_usec)
     end
 
     @doc """
@@ -57,6 +61,10 @@ defmodule Acx.Persist.EctoAdapter do
     @spec create_changeset({atom(), [String.t()]}) :: %CasbinRule{}
     def create_changeset({_key, _attrs} = policy) do
       changeset(%CasbinRule{}, policy_to_map(policy))
+    end
+
+    def create_changeset(%{key: key, attrs: attrs} = _policy) do
+      create_changeset({key, attrs})
     end
 
     @spec create_changeset(
@@ -237,6 +245,8 @@ defmodule Acx.Persist.EctoAdapter do
           end
         end)
       end)
+
+      {:ok, adapter}
     end
   end
 end

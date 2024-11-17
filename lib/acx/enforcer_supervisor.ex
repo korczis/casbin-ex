@@ -5,7 +5,7 @@ defmodule Acx.EnforcerSupervisor.Behaviour do
   """
 
   defmacro __using__(opts \\ []) do
-    server_module = Keyword.get(opts, :server_module)
+    server_module = Keyword.get(opts, :server_module, Acx.EnforcerServer)
 
     quote do
       use DynamicSupervisor
@@ -30,11 +30,9 @@ defmodule Acx.EnforcerSupervisor.Behaviour do
         DynamicSupervisor.start_child(__MODULE__, child_spec)
       end
 
-      defoverridable [
-        start_link: 1,
-        init: 1,
-        start_enforcer: 2
-      ]
+      defoverridable start_link: 1,
+                     init: 1,
+                     start_enforcer: 2
 
       unquote(Macro.expand(opts, __ENV__))
     end
@@ -49,7 +47,7 @@ defmodule Acx.EnforcerSupervisor do
   use Acx.EnforcerSupervisor.Behaviour
 
   defmacro __using__(opts \\ []) do
-    quote() do
+    quote do
       use Acx.EnforcerSupervisor.Behaviour, unquote(opts)
     end
   end

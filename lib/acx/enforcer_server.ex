@@ -147,7 +147,7 @@ defmodule Acx.EnforcerServer.Behaviour do
       Removes policies with attributes that match the filter fields
       starting at the index.any()
 
-      see `Enforecer.remove_filtered_policy/4
+      see `Enforecer.remove_filtered_policy/4`
       """
       def remove_filtered_policy(ename, req_key, idx, req) do
         GenServer.call(
@@ -388,7 +388,7 @@ defmodule Acx.EnforcerServer do
   use Acx.EnforcerServer.Behaviour
 
   defmacro __using__(opts \\ []) do
-    quote() do
+    quote do
       use Acx.EnforcerServer.Behaviour, unquote(opts)
     end
   end

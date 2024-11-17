@@ -1,28 +1,56 @@
+# lib/acx/enforcer_supervisor/behaviour.ex
+defmodule Acx.EnforcerSupervisor.Behaviour do
+  @moduledoc """
+  Behaviour module that defines the EnforcerSupervisor interface
+  """
+
+  defmacro __using__(opts \\ []) do
+    server_module = Keyword.get(opts, :server_module)
+
+    quote do
+      use DynamicSupervisor
+
+      require Logger
+
+      def start_link(args \\ []) do
+        DynamicSupervisor.start_link(__MODULE__, args, name: __MODULE__)
+      end
+
+      def init(args) do
+        DynamicSupervisor.init(strategy: :one_for_one)
+      end
+
+      @doc """
+      Starts a new `Enforcer` process and supervises it
+      """
+      def start_enforcer(ename, cfile) do
+        child_spec = unquote(server_module).child_spec(ename, cfile)
+
+        Logger.debug("Starting enforcer, child_spec: #{inspect(child_spec)}")
+        DynamicSupervisor.start_child(__MODULE__, child_spec)
+      end
+
+      defoverridable [
+        start_link: 1,
+        init: 1,
+        start_enforcer: 2
+      ]
+
+      unquote(Macro.expand(opts, __ENV__))
+    end
+  end
+end
+
 defmodule Acx.EnforcerSupervisor do
   @moduledoc """
-  A supervisor that starts `Enforcer` processes dynamically.
+  Default implementation of the EnforcerSupervisor
   """
 
-  use DynamicSupervisor
+  use Acx.EnforcerSupervisor.Behaviour
 
-  def start_link(_args) do
-    DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
-  end
-
-  def init(:ok) do
-    DynamicSupervisor.init(strategy: :one_for_one)
-  end
-
-  @doc """
-  Starts a new `Enforcer` process and supervises it
-  """
-  def start_enforcer(ename, cfile) do
-    child_spec = %{
-      id: Acx.EnforcerServer,
-      start: {Acx.EnforcerServer, :start_link, [ename, cfile]},
-      restart: :permanent
-    }
-
-    DynamicSupervisor.start_child(__MODULE__, child_spec)
+  defmacro __using__(opts \\ []) do
+    quote() do
+      use Acx.EnforcerSupervisor.Behaviour, unquote(opts)
+    end
   end
 end
